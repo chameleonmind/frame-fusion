@@ -1,0 +1,26 @@
+[data-ff-wrapper] {
+	position: relative;
+	overflow: hidden;
+}
+
+[data-ff-wrapper] > img {
+	display: block;
+	width: 100%;
+	height: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	visibility: hidden;
+}
+
+[data-ff-wrapper] > img[data-ff-poster] {
+	visibility: visible;
+}
+
+[data-ff-wrapper] > img.ff-active {
+	visibility: visible;
+}
+
+[data-ff-wrapper] > img.ff-hidden {
+	visibility: hidden;
+}
