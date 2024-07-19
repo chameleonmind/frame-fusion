@@ -1,72 +1,16 @@
 import type {
 	AnimateCoreReturnType,
+	AnimationDirection,
 	AnimationStates,
 	SequenceAnimationOptions,
 } from '../types'
 import { animate } from './core/animate'
-import { clamp } from './core/clamp'
-
-export function checkIfImagesAreLoaded(
-	images: HTMLImageElement[],
-): Promise<boolean> {
-	return new Promise((resolve) => {
-		let loaded = 0
-		for (const image of images) {
-			// check if image is loaded
-			if (image.complete) {
-				loaded++
-			} else {
-				image.addEventListener('load', () => {
-					loaded++
-					if (loaded === images.length) {
-						resolve(true)
-					}
-				})
-			}
-		}
-	})
-}
-
-function getFramesDuration(
-	framesDuration: number[] | undefined,
-	images: HTMLImageElement[],
-	delay: number | undefined,
-	framerate: number,
-): number[] {
-	// framesDuration > images data-ff-duration > delay > framerate
-	if (
-		Array.isArray(framesDuration) &&
-		framesDuration.length === images.length
-	) {
-		// push 0 to the start of the array
-		return [0, ...framesDuration]
-	}
-	if (
-		images?.length &&
-		images.some((image) => image.getAttribute('data-ff-delay'))
-	) {
-		const framesDurationArray: number[] = []
-		for (const image of images) {
-			if (image.getAttribute('data-ff-delay')) {
-				framesDurationArray.push(
-					Number.parseFloat(image.getAttribute('data-ff-delay') || '0.1'),
-				)
-			} else {
-				framesDurationArray.push(0.1)
-			}
-		}
-
-		return [0, ...framesDurationArray]
-	}
-	if (delay) {
-		return [0, ...Array.from({ length: images.length }, () => delay)]
-	}
-
-	return [
-		0,
-		...Array.from({ length: images.length }, () => (1 / framerate) * 1000),
-	]
-}
+import {
+	checkIfImagesAreLoaded,
+	clamp,
+	createImageElement,
+	getFramesDuration,
+} from './core/utils'
 
 export function sequenceAnimation(
 	elementSelector: string,
@@ -93,16 +37,21 @@ export function sequenceAnimation(
 	let originalLastFrameDuration = 0
 	let animation: AnimateCoreReturnType | null = null
 	let nextFrameNumber = -1
-	let animationDirection: 'forward' | 'reverse' | undefined
+	let animationDirection: AnimationDirection
 	let playCount = 0
 
 	// if the options.frames is provided, empty the main element and append the images
 	if (mainElement && _options?.frames) {
 		mainElement.innerHTML = ''
-		for (const frame of _options.frames) {
-			const image = document.createElement('img')
-			image.src = frame
-			mainElement.appendChild(image)
+
+		if (_options?.poster) {
+			createImageElement(mainElement, _options.poster, {
+				'data-ff-poster': '',
+			})
+		}
+
+		for (let i = 0; i < _options.frames.length; i++) {
+			const image = createImageElement(mainElement, _options.frames[i])
 			imageSequence.push(image)
 		}
 
@@ -146,15 +95,12 @@ export function sequenceAnimation(
 	function animateSequence(currentIndex: number) {
 		let indexToShow = currentIndex
 		// Reset all images
-		if (imageSequence[indexToShow]) {
-			resetImages()
-		}
+		resetImages()
 
 		if (animationDirection === 'reverse') {
 			indexToShow = imageSequenceLength - currentIndex - 2
 		}
 
-		// Add class to the current image
 		if (imageSequence[indexToShow]) {
 			imageSequence[indexToShow].classList.add('ff-active')
 		}
@@ -289,9 +235,8 @@ export function sequenceAnimation(
 	 * Reset all images (remove active class)
 	 */
 	function resetImages() {
-		// Reset all images
-		for (const img of imageSequence) {
-			img.classList.remove('ff-active')
+		for (let i = 0; i < imageSequence.length; i++) {
+			imageSequence[i].classList.remove('ff-active')
 		}
 	}
 
@@ -301,7 +246,7 @@ export function sequenceAnimation(
 	 */
 	function play(forcePlay?: boolean) {
 		if (imagesLoaded || forcePlay) {
-			// in case of intentional play, reset the repeat count
+			// in case of intentional play, need to reset the repeat count
 			_options.repeat = options?.repeat
 			playCount = 0
 
@@ -335,14 +280,11 @@ export function sequenceAnimation(
 	function stop() {
 		setEndFrame()
 
-		resetImages()
-
-		if (imageSequence[nextFrameNumber])
-			imageSequence[nextFrameNumber].classList.add('ff-active')
+		makeCurrentFrameActive()
 
 		animation?.stop()
 		animation?.reset()
-		// animationDirection = undefined
+
 		handleEvents('stop')
 	}
 
@@ -356,11 +298,6 @@ export function sequenceAnimation(
 		const isReverse = animationDirection === 'reverse'
 		const lastFrame = imageSequenceLength - 2
 		if (isReverse) {
-			// if (intent === 'next') {
-			// 	nextFrameNumber = nextFrameNumber > 0 ? nextFrameNumber - 1 : lastFrame
-			// } else {
-			// 	nextFrameNumber = nextFrameNumber < lastFrame ? nextFrameNumber + 1 : 0
-			// }
 			nextFrameNumber =
 				intent === 'next'
 					? nextFrameNumber > 0
@@ -370,11 +307,6 @@ export function sequenceAnimation(
 						? nextFrameNumber + 1
 						: 0
 		} else {
-			// if (intent === 'next') {
-			// 	nextFrameNumber = nextFrameNumber < lastFrame ? nextFrameNumber + 1 : 0
-			// } else {
-			// 	nextFrameNumber = nextFrameNumber > 0 ? nextFrameNumber - 1 : lastFrame
-			// }
 			nextFrameNumber =
 				intent === 'next'
 					? nextFrameNumber < lastFrame
@@ -418,66 +350,33 @@ export function sequenceAnimation(
 		}
 	}
 
+	/**
+	 * Resets all images and makes the current frame active
+	 */
 	function makeCurrentFrameActive() {
 		resetImages()
 		if (imageSequence[nextFrameNumber]) {
 			imageSequence[nextFrameNumber].classList.add('ff-active')
 		}
 	}
+
+	function stepThroughFrames(dir: 'next' | 'previous') {
+		setInitialAnimationDirection()
+
+		updateNextFrameNumber(dir)
+
+		updateAnimationDirection(dir)
+
+		makeCurrentFrameActive()
+
+		animation?.setFrame(nextFrameNumber)
+	}
 	/**
 	 * Move to the next frame in the sequence.
 	 * Respects the animation direction and the fill mode.
 	 */
 	function nextFrame() {
-		if (nextFrameNumber < 0) {
-			setAnimationDirection()
-		}
-		// setInitialAnimationDirection()
-
-		// if (animationDirection === 'reverse') {
-		// 	if (nextFrameNumber > 0) {
-		// 		nextFrameNumber--
-		// 	} else {
-		// 		nextFrameNumber = imageSequenceLength - 2
-		// 	}
-		// } else {
-		// 	if (nextFrameNumber < imageSequenceLength - 2) {
-		// 		nextFrameNumber++
-		// 	} else {
-		// 		nextFrameNumber = 0
-		// 	}
-		// }
-		updateNextFrameNumber('next')
-
-		// change the animation direction if the next frame is the last frame
-
-		// if (
-		//   nextFrameNumber === imageSequenceLength - 2 &&
-		//   animationDirection === 'forward' &&
-		//   (_options.direction === 'alternate' ||
-		//     _options.direction === 'alternate-reverse')
-		// ) {
-		//   animationDirection =
-		//     animationDirection === 'forward' ? 'reverse' : 'forward'
-		// } else if (
-		//   nextFrameNumber === 0 &&
-		//   animationDirection === 'reverse' &&
-		//   (_options.direction === 'alternate' ||
-		//     _options.direction === 'alternate-reverse')
-		// ) {
-		//   animationDirection =
-		//     animationDirection === 'reverse' ? 'forward' : 'reverse'
-		// }
-		updateAnimationDirection('next')
-
-		resetImages()
-
-		if (imageSequence[nextFrameNumber]) {
-			imageSequence[nextFrameNumber].classList.add('ff-active')
-		}
-		// makeCurrentFrameActive()
-
-		animation?.setFrame(nextFrameNumber)
+		stepThroughFrames('next')
 	}
 
 	/**
@@ -485,54 +384,7 @@ export function sequenceAnimation(
 	 * Respects the animation direction and the fill mode.
 	 */
 	function previousFrame() {
-		// if (nextFrameNumber < 0) {
-		// 	setAnimationDirection()
-		// }
-		setInitialAnimationDirection()
-
-		// if (animationDirection === 'reverse') {
-		// 	if (nextFrameNumber < imageSequenceLength - 2) {
-		// 		nextFrameNumber++
-		// 	} else {
-		// 		nextFrameNumber = 0
-		// 	}
-		// } else {
-		// 	if (nextFrameNumber > 0) {
-		// 		nextFrameNumber--
-		// 	} else {
-		// 		nextFrameNumber = imageSequenceLength - 2
-		// 	}
-		// }
-		updateNextFrameNumber('previous')
-
-		// change the animation direction if the next frame is the first frame
-		// if (
-		// 	nextFrameNumber === 0 &&
-		// 	animationDirection === 'forward' &&
-		// 	(_options.direction === 'alternate' ||
-		// 		_options.direction === 'alternate-reverse')
-		// ) {
-		// 	animationDirection =
-		// 		animationDirection === 'forward' ? 'reverse' : 'forward'
-		// } else if (
-		// 	nextFrameNumber === imageSequenceLength - 2 &&
-		// 	animationDirection === 'reverse' &&
-		// 	(_options.direction === 'alternate' ||
-		// 		_options.direction === 'alternate-reverse')
-		// ) {
-		// 	animationDirection =
-		// 		animationDirection === 'reverse' ? 'forward' : 'reverse'
-		// }
-		updateAnimationDirection('previous')
-
-		// resetImages()
-
-		// if (imageSequence[nextFrameNumber]) {
-		// 	imageSequence[nextFrameNumber].classList.add('ff-active')
-		// }
-		makeCurrentFrameActive()
-
-		animation?.setFrame(nextFrameNumber)
+		stepThroughFrames('previous')
 	}
 
 	/**
@@ -548,11 +400,7 @@ export function sequenceAnimation(
 
 		nextFrameNumber = clamp(frameNumber, 0, imageSequenceLength - 2)
 
-		resetImages()
-
-		if (imageSequence[nextFrameNumber]) {
-			imageSequence[nextFrameNumber].classList.add('ff-active')
-		}
+		makeCurrentFrameActive()
 
 		const nextFrame =
 			nextFrameNumber === imageSequenceLength - 2 ? 0 : nextFrameNumber

@@ -27,3 +27,5 @@ export type AnimateCoreReturnType = {
 	reset: () => void
 	setFrame: (index: number) => void
 }
+
+export type AnimationDirection = 'forward' | 'reverse' | undefined
