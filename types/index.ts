@@ -5,9 +5,8 @@ export type SequenceAnimationOptions = {
 	frames?: string[] // Array of image paths
 	poster?: string
 	autoplay?: boolean
-	framesDuration?: number[]
 	framerate?: number
-	delay?: number
+	delay?: number[] | number
 	repeat?: number
 	fillMode?: 'forwards' | 'backwards' | 'poster'
 	direction?: 'normal' | 'reverse' | 'alternate' | 'alternate-reverse'

@@ -68,7 +68,6 @@ export function sequenceAnimation(
 	}
 
 	framesDurationsArray = getFramesDuration(
-		_options.framesDuration,
 		imageSequence,
 		_options.delay,
 		_options.framerate,

@@ -19,19 +19,16 @@ export function createImageElement(
 }
 
 export function getFramesDuration(
-	framesDuration: number[] | undefined,
 	images: HTMLImageElement[],
-	delay: number | undefined,
+	delay: number[] | number | undefined,
 	framerate: number,
 ): number[] {
-	// framesDuration > images data-ff-duration > delay > framerate
-	if (
-		Array.isArray(framesDuration) &&
-		framesDuration.length === images.length
-	) {
+	// delay array > images data-ff-duration > delay > framerate
+	if (Array.isArray(delay) && delay.length === images.length) {
 		// push 0 to the start of the array
-		return [0, ...framesDuration]
+		return [0, ...delay]
 	}
+
 	if (
 		images?.length &&
 		images.some((image) => image.getAttribute('data-ff-delay'))
@@ -49,7 +46,8 @@ export function getFramesDuration(
 
 		return [0, ...framesDurationArray]
 	}
-	if (delay) {
+
+	if (!Array.isArray(delay) && typeof delay === 'number') {
 		return [0, ...Array.from({ length: images.length }, () => delay)]
 	}
 
