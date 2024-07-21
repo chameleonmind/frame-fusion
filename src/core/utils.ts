@@ -1,3 +1,5 @@
+import type { AnimationSequenceElements } from '../../types'
+
 export function clamp(value: number, min: number, max: number): number {
 	return Math.min(Math.max(value, min), max)
 }
@@ -19,7 +21,7 @@ export function createImageElement(
 }
 
 export function getFramesDuration(
-	images: HTMLImageElement[],
+	images: AnimationSequenceElements,
 	delay: number[] | number | undefined,
 	framerate: number,
 ): number[] {
@@ -58,21 +60,40 @@ export function getFramesDuration(
 }
 
 export function checkIfImagesAreLoaded(
-	images: HTMLImageElement[],
+	elements: AnimationSequenceElements,
 ): Promise<boolean> {
 	return new Promise((resolve) => {
 		let loaded = 0
-		for (const image of images) {
-			// check if image is loaded
-			if (image.complete) {
-				loaded++
-			} else {
-				image.addEventListener('load', () => {
+		for (const el of elements) {
+			// check if el is image and it is loaded
+			if (el instanceof HTMLImageElement) {
+				if (el.complete) {
 					loaded++
-					if (loaded === images.length) {
-						resolve(true)
+				} else {
+					el.addEventListener('load', () => {
+						loaded++
+						if (loaded === elements.length) {
+							resolve(true)
+						}
+					})
+				}
+			} else {
+				// check if there are images inside the element
+				const images = Array.from(el.querySelectorAll('img'))
+				if (images.length) {
+					for (const image of images) {
+						if (image.complete) {
+							loaded++
+						} else {
+							image.addEventListener('load', () => {
+								loaded++
+								if (loaded === elements.length) {
+									resolve(true)
+								}
+							})
+						}
 					}
-				})
+				}
 			}
 		}
 	})

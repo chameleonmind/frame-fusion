@@ -1,6 +1,7 @@
 import type {
 	AnimateCoreReturnType,
 	AnimationDirection,
+	AnimationSequenceElements,
 	AnimationStates,
 	SequenceAnimationOptions,
 } from '../types'
@@ -29,9 +30,9 @@ export function sequenceAnimation(
 
 	const mainElement = document.querySelector(elementSelector)
 
-	let imageSequence: HTMLImageElement[] = []
-	let imageSequenceLength = 0
-	let imagesLoaded = false
+	let animationSequence: AnimationSequenceElements = []
+	let animationSequenceLength = 0
+	let animationElementsLoaded = false
 	let framesDurationsArray: number[] = []
 	let originalFirstFrameDuration = 0
 	let originalLastFrameDuration = 0
@@ -52,10 +53,10 @@ export function sequenceAnimation(
 
 		for (let i = 0; i < _options.frames.length; i++) {
 			const image = createImageElement(mainElement, _options.frames[i])
-			imageSequence.push(image)
+			animationSequence.push(image)
 		}
 
-		imageSequenceLength = imageSequence.length + 1 // adding 1 because frameDuration array needs to have leading 0, so there is no timeout at the beginning
+		animationSequenceLength = animationSequence.length + 1 // adding 1 because frameDuration array needs to have leading 0, so there is no timeout at the beginning
 	}
 
 	if (!_options?.frames) {
@@ -63,12 +64,14 @@ export function sequenceAnimation(
 		const selector = options?.selector
 			? `${options?.selector}:not([data-ff-poster])`
 			: 'img:not([data-ff-poster])'
-		imageSequence = Array.from(mainElement?.querySelectorAll(selector) || [])
-		imageSequenceLength = imageSequence.length + 1
+		animationSequence = Array.from(
+			mainElement?.querySelectorAll(selector) || [],
+		)
+		animationSequenceLength = animationSequence.length + 1
 	}
 
 	framesDurationsArray = getFramesDuration(
-		imageSequence,
+		animationSequence,
 		_options.delay,
 		_options.framerate,
 	)
@@ -77,9 +80,9 @@ export function sequenceAnimation(
 	originalLastFrameDuration =
 		framesDurationsArray[framesDurationsArray.length - 1]
 
-	checkIfImagesAreLoaded(imageSequence).then((isLoaded) => {
+	checkIfImagesAreLoaded(animationSequence).then((isLoaded) => {
 		if (isLoaded) {
-			imagesLoaded = true
+			animationElementsLoaded = true
 
 			animation = animate(framesDurationsArray, animateSequence)
 
@@ -97,17 +100,17 @@ export function sequenceAnimation(
 		resetImages()
 
 		if (animationDirection === 'reverse') {
-			indexToShow = imageSequenceLength - currentIndex - 2
+			indexToShow = animationSequenceLength - currentIndex - 2
 		}
 
-		if (imageSequence[indexToShow]) {
-			imageSequence[indexToShow].classList.add('ff-active')
+		if (animationSequence[indexToShow]) {
+			animationSequence[indexToShow].classList.add('ff-active')
 		}
 
-		nextFrameNumber = (currentIndex + 1) % imageSequenceLength
+		nextFrameNumber = (currentIndex + 1) % animationSequenceLength
 
 		if (
-			nextFrameNumber === imageSequenceLength - 1 &&
+			nextFrameNumber === animationSequenceLength - 1 &&
 			(_options.direction === 'alternate' ||
 				_options.direction === 'alternate-reverse')
 		) {
@@ -121,14 +124,14 @@ export function sequenceAnimation(
 		// update the play count after complete animation
 		let completeAnimationComparator: number
 		if (_options.direction === 'alternate') {
-			completeAnimationComparator = imageSequenceLength - 1
+			completeAnimationComparator = animationSequenceLength - 1
 		} else if (
 			_options.direction === 'alternate-reverse' ||
 			_options.direction === 'reverse'
 		) {
 			completeAnimationComparator = -1
 		} else {
-			completeAnimationComparator = imageSequenceLength - 2
+			completeAnimationComparator = animationSequenceLength - 2
 		}
 
 		if (indexToShow === completeAnimationComparator) {
@@ -209,14 +212,14 @@ export function sequenceAnimation(
 			) {
 				nextFrameNumber = 0
 			} else {
-				nextFrameNumber = imageSequenceLength - 2
+				nextFrameNumber = animationSequenceLength - 2
 			}
 		} else if (_options.fillMode === 'backwards') {
 			if (
 				_options.direction === 'alternate' ||
 				_options.direction === 'reverse'
 			) {
-				nextFrameNumber = imageSequenceLength - 2
+				nextFrameNumber = animationSequenceLength - 2
 			} else {
 				nextFrameNumber = 0
 			}
@@ -234,8 +237,8 @@ export function sequenceAnimation(
 	 * Reset all images (remove active class)
 	 */
 	function resetImages() {
-		for (let i = 0; i < imageSequence.length; i++) {
-			imageSequence[i].classList.remove('ff-active')
+		for (let i = 0; i < animationSequence.length; i++) {
+			animationSequence[i].classList.remove('ff-active')
 		}
 	}
 
@@ -244,7 +247,7 @@ export function sequenceAnimation(
 	 * @param forcePlay - force play even if images are not loaded
 	 */
 	function play(forcePlay?: boolean) {
-		if (imagesLoaded || forcePlay) {
+		if (animationElementsLoaded || forcePlay) {
 			// in case of intentional play, need to reset the repeat count
 			_options.repeat = options?.repeat
 			playCount = 0
@@ -295,7 +298,7 @@ export function sequenceAnimation(
 
 	function updateNextFrameNumber(intent: 'next' | 'previous') {
 		const isReverse = animationDirection === 'reverse'
-		const lastFrame = imageSequenceLength - 2
+		const lastFrame = animationSequenceLength - 2
 		if (isReverse) {
 			nextFrameNumber =
 				intent === 'next'
@@ -326,7 +329,7 @@ export function sequenceAnimation(
 	}
 
 	function updateAnimationDirection(intent: 'next' | 'previous') {
-		const isLastFrame = nextFrameNumber === imageSequenceLength - 2
+		const isLastFrame = nextFrameNumber === animationSequenceLength - 2
 		const isFirstFrame = nextFrameNumber === 0
 		const isForward = animationDirection === 'forward'
 		const isReverse = animationDirection === 'reverse'
@@ -354,8 +357,8 @@ export function sequenceAnimation(
 	 */
 	function makeCurrentFrameActive() {
 		resetImages()
-		if (imageSequence[nextFrameNumber]) {
-			imageSequence[nextFrameNumber].classList.add('ff-active')
+		if (animationSequence[nextFrameNumber]) {
+			animationSequence[nextFrameNumber].classList.add('ff-active')
 		}
 	}
 
@@ -397,12 +400,12 @@ export function sequenceAnimation(
 			setAnimationDirection()
 		}
 
-		nextFrameNumber = clamp(frameNumber, 0, imageSequenceLength - 2)
+		nextFrameNumber = clamp(frameNumber, 0, animationSequenceLength - 2)
 
 		makeCurrentFrameActive()
 
 		const nextFrame =
-			nextFrameNumber === imageSequenceLength - 2 ? 0 : nextFrameNumber
+			nextFrameNumber === animationSequenceLength - 2 ? 0 : nextFrameNumber
 		animation?.setFrame(nextFrame)
 	}
 
