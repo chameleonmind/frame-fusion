@@ -60,7 +60,7 @@ export function sequenceAnimation(
 	}
 
 	if (!_options?.frames) {
-		// get all images from the main element
+		// get all elements from the main element
 		const selector = options?.selector
 			? `${options?.selector}:not([data-ff-poster])`
 			: 'img:not([data-ff-poster])'
@@ -96,8 +96,8 @@ export function sequenceAnimation(
 
 	function animateSequence(currentIndex: number) {
 		let indexToShow = currentIndex
-		// Reset all images
-		resetImages()
+
+		resetElementVisibility()
 
 		if (animationDirection === 'reverse') {
 			indexToShow = animationSequenceLength - currentIndex - 2
@@ -225,7 +225,7 @@ export function sequenceAnimation(
 			}
 		} else {
 			// show poster image if present
-			const poster = mainElement?.querySelector('img[data-ff-poster]')
+			const poster = mainElement?.querySelector('[data-ff-poster]')
 			if (poster) {
 				poster.classList.remove('ff-hidden')
 			}
@@ -234,9 +234,9 @@ export function sequenceAnimation(
 	}
 
 	/**
-	 * Reset all images (remove active class)
+	 * Reset all elements visibility (remove active class)
 	 */
-	function resetImages() {
+	function resetElementVisibility() {
 		for (let i = 0; i < animationSequence.length; i++) {
 			animationSequence[i].classList.remove('ff-active')
 		}
@@ -257,7 +257,7 @@ export function sequenceAnimation(
 			setInitialFrameDurationArray()
 
 			// hide poster image if present
-			const poster = mainElement?.querySelector('img[data-ff-poster]')
+			const poster = mainElement?.querySelector('[data-ff-poster]')
 			if (poster) {
 				poster.classList.add('ff-hidden')
 			}
@@ -267,6 +267,8 @@ export function sequenceAnimation(
 			handleEvents('play')
 		}
 	}
+
+	// TODO: Play section of the animation, taking the start and end frames as an argument
 
 	/**
 	 * Pauses the sequence animation on the current frame
@@ -353,10 +355,10 @@ export function sequenceAnimation(
 	}
 
 	/**
-	 * Resets all images and makes the current frame active
+	 * Resets all elements visibility and makes the current frame active
 	 */
 	function makeCurrentFrameActive() {
-		resetImages()
+		resetElementVisibility()
 		if (animationSequence[nextFrameNumber]) {
 			animationSequence[nextFrameNumber].classList.add('ff-active')
 		}

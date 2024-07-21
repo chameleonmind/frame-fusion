@@ -21,25 +21,25 @@ export function createImageElement(
 }
 
 export function getFramesDuration(
-	images: AnimationSequenceElements,
+	elements: AnimationSequenceElements,
 	delay: number[] | number | undefined,
 	framerate: number,
 ): number[] {
-	// delay array > images data-ff-duration > delay > framerate
-	if (Array.isArray(delay) && delay.length === images.length) {
+	// delay array > elements data-ff-duration > delay > framerate
+	if (Array.isArray(delay) && delay.length === elements.length) {
 		// push 0 to the start of the array
 		return [0, ...delay]
 	}
 
 	if (
-		images?.length &&
-		images.some((image) => image.getAttribute('data-ff-delay'))
+		elements?.length &&
+		elements.some((el) => el.getAttribute('data-ff-delay'))
 	) {
 		const framesDurationArray: number[] = []
-		for (const image of images) {
-			if (image.getAttribute('data-ff-delay')) {
+		for (const el of elements) {
+			if (el.getAttribute('data-ff-delay')) {
 				framesDurationArray.push(
-					Number.parseFloat(image.getAttribute('data-ff-delay') || '0.1'),
+					Number.parseFloat(el.getAttribute('data-ff-delay') || '0.1'),
 				)
 			} else {
 				framesDurationArray.push(0.1)
@@ -50,12 +50,12 @@ export function getFramesDuration(
 	}
 
 	if (!Array.isArray(delay) && typeof delay === 'number') {
-		return [0, ...Array.from({ length: images.length }, () => delay)]
+		return [0, ...Array.from({ length: elements.length }, () => delay)]
 	}
 
 	return [
 		0,
-		...Array.from({ length: images.length }, () => (1 / framerate) * 1000),
+		...Array.from({ length: elements.length }, () => (1 / framerate) * 1000),
 	]
 }
 
@@ -70,12 +70,16 @@ export function checkIfImagesAreLoaded(
 				if (el.complete) {
 					loaded++
 				} else {
-					el.addEventListener('load', () => {
-						loaded++
-						if (loaded === elements.length) {
-							resolve(true)
-						}
-					})
+					el.addEventListener(
+						'load',
+						() => {
+							loaded++
+							if (loaded === elements.length) {
+								resolve(true)
+							}
+						},
+						{ once: true },
+					)
 				}
 			} else {
 				// check if there are images inside the element
@@ -85,12 +89,16 @@ export function checkIfImagesAreLoaded(
 						if (image.complete) {
 							loaded++
 						} else {
-							image.addEventListener('load', () => {
-								loaded++
-								if (loaded === elements.length) {
-									resolve(true)
-								}
-							})
+							image.addEventListener(
+								'load',
+								() => {
+									loaded++
+									if (loaded === elements.length) {
+										resolve(true)
+									}
+								},
+								{ once: true },
+							)
 						}
 					}
 				}
