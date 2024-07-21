@@ -5,9 +5,8 @@ export type SequenceAnimationOptions = {
 	frames?: string[] // Array of image paths
 	poster?: string
 	autoplay?: boolean
-	framesDuration?: number[]
 	framerate?: number
-	delay?: number
+	delay?: number[] | number
 	repeat?: number
 	fillMode?: 'forwards' | 'backwards' | 'poster'
 	direction?: 'normal' | 'reverse' | 'alternate' | 'alternate-reverse'
@@ -27,3 +26,7 @@ export type AnimateCoreReturnType = {
 	reset: () => void
 	setFrame: (index: number) => void
 }
+
+export type AnimationDirection = 'forward' | 'reverse' | undefined
+
+export type AnimationSequenceElements = HTMLImageElement[] | HTMLElement[]
