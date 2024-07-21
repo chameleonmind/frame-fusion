@@ -3,7 +3,7 @@
 	overflow: hidden;
 }
 
-[data-ff-wrapper] > img {
+[data-ff-wrapper] > * {
 	display: block;
 	width: 100%;
 	height: auto;
@@ -13,14 +13,14 @@
 	visibility: hidden;
 }
 
-[data-ff-wrapper] > img[data-ff-poster] {
+[data-ff-wrapper] > [data-ff-poster] {
 	visibility: visible;
 }
 
-[data-ff-wrapper] > img.ff-active {
+[data-ff-wrapper] > [data-ff-active] {
 	visibility: visible;
 }
 
-[data-ff-wrapper] > img.ff-hidden {
+[data-ff-wrapper] > [data-ff-hidden] {
 	visibility: hidden;
 }

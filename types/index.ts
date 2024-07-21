@@ -29,7 +29,4 @@ export type AnimateCoreReturnType = {
 
 export type AnimationDirection = 'forward' | 'reverse' | undefined
 
-export type AnimationSequenceElements =
-	| HTMLImageElement[]
-	| HTMLElement[]
-	| Element[]
+export type AnimationSequenceElements = HTMLImageElement[] | HTMLElement[]

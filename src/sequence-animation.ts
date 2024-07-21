@@ -104,7 +104,7 @@ export function sequenceAnimation(
 		}
 
 		if (animationSequence[indexToShow]) {
-			animationSequence[indexToShow].classList.add('ff-active')
+			animationSequence[indexToShow].setAttribute('data-ff-active', '')
 		}
 
 		nextFrameNumber = (currentIndex + 1) % animationSequenceLength
@@ -227,18 +227,18 @@ export function sequenceAnimation(
 			// show poster image if present
 			const poster = mainElement?.querySelector('[data-ff-poster]')
 			if (poster) {
-				poster.classList.remove('ff-hidden')
+				poster.removeAttribute('data-ff-hidden')
 			}
 			nextFrameNumber = -1
 		}
 	}
 
 	/**
-	 * Reset all elements visibility (remove active class)
+	 * Reset all elements visibility (remove active data attribute)
 	 */
 	function resetElementVisibility() {
 		for (let i = 0; i < animationSequence.length; i++) {
-			animationSequence[i].classList.remove('ff-active')
+			animationSequence[i].removeAttribute('data-ff-active')
 		}
 	}
 
@@ -259,7 +259,7 @@ export function sequenceAnimation(
 			// hide poster image if present
 			const poster = mainElement?.querySelector('[data-ff-poster]')
 			if (poster) {
-				poster.classList.add('ff-hidden')
+				poster.setAttribute('data-ff-hidden', '')
 			}
 
 			animation?.start()
@@ -360,7 +360,7 @@ export function sequenceAnimation(
 	function makeCurrentFrameActive() {
 		resetElementVisibility()
 		if (animationSequence[nextFrameNumber]) {
-			animationSequence[nextFrameNumber].classList.add('ff-active')
+			animationSequence[nextFrameNumber].setAttribute('data-ff-active', '')
 		}
 	}
 
