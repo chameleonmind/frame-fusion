@@ -69,6 +69,9 @@ export function checkIfImagesAreLoaded(
 			if (el instanceof HTMLImageElement) {
 				if (el.complete) {
 					loaded++
+					if (loaded === elements.length) {
+						resolve(true)
+					}
 				} else {
 					el.addEventListener(
 						'load',

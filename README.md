@@ -1,6 +1,8 @@
 # Frame Fusion
 
-Animate sequence of layered images in a single frame. Like animated GIFs, but you can use higher quality images and have more
+Animate sequence of layered images in a single frame.
+
+Just like animated GIFs or animated PNGs, but you can use higher quality images and have more
 control over the animation.
 
 ## Installation
@@ -21,6 +23,6 @@ Frame Fusion &copy; [ChameleonMind](https://github.com/chameleonmind).\
 Authored and maintained by Miloš Milošević.
 
 
-> Website [https://chameleonmind.dev](https://chameleonmind.dev) &nbsp;&middot;&nbsp;
+> Website [chameleonmind.dev](https://chameleonmind.dev) &nbsp;&middot;&nbsp;
 > GitHub [@chameleonmind](https://github.com/chameleonmind) &nbsp;&middot;&nbsp;
-> Twitter [@chameleonmind](https://twitter.com/chameleon_mind)
+> Twitter [@chameleon_mind](https://twitter.com/chameleon_mind)

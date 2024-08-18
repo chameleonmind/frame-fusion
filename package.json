@@ -4,7 +4,10 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"files": ["dist", "styles"],
+	"files": [
+		"dist",
+		"styles"
+	],
 	"description": "Animate sequence of layered images in a single frame",
 	"author": {
 		"name": "Miloš Milošević",

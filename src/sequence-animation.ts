@@ -38,8 +38,10 @@ export function sequenceAnimation(
 	let originalLastFrameDuration = 0
 	let animation: AnimateCoreReturnType | null = null
 	let nextFrameNumber = -1
+	let privateCurrentIndex = -1
 	let animationDirection: AnimationDirection
 	let playCount = 0
+	let isPaused = false
 
 	// if the options.frames is provided, empty the main element and append the images
 	if (mainElement && _options?.frames) {
@@ -51,8 +53,8 @@ export function sequenceAnimation(
 			})
 		}
 
-		for (let i = 0; i < _options.frames.length; i++) {
-			const image = createImageElement(mainElement, _options.frames[i])
+		for (const element of _options.frames) {
+			const image = createImageElement(mainElement, element)
 			animationSequence.push(image)
 		}
 
@@ -84,20 +86,23 @@ export function sequenceAnimation(
 		if (isLoaded) {
 			animationElementsLoaded = true
 
-			animation = animate(framesDurationsArray, animateSequence)
+			// animation = animate(framesDurationsArray, animateSequence)
+
+			_options?.onLoad?.()
 
 			if (_options?.autoplay) {
 				play()
 			}
-
-			_options?.onLoad?.()
 		}
 	})
 
 	function animateSequence(currentIndex: number) {
 		let indexToShow = currentIndex
 
-		resetElementVisibility()
+		// avoid flickering when the last frame is shown
+		if (currentIndex < animationSequenceLength - 1) {
+			resetElementVisibility()
+		}
 
 		if (animationDirection === 'reverse') {
 			indexToShow = animationSequenceLength - currentIndex - 2
@@ -107,6 +112,7 @@ export function sequenceAnimation(
 			animationSequence[indexToShow].setAttribute('data-ff-active', '')
 		}
 
+		privateCurrentIndex = currentIndex
 		nextFrameNumber = (currentIndex + 1) % animationSequenceLength
 
 		if (
@@ -149,11 +155,23 @@ export function sequenceAnimation(
 
 	function handleEvents(state: AnimationStates) {
 		if (state === 'play') {
-			_options?.onPlay?.()
+			_options?.onPlay?.({
+				nextFrameNumber,
+				currentIndex: privateCurrentIndex,
+				animationDirection,
+			})
 		} else if (state === 'stop') {
-			_options?.onStop?.()
+			_options?.onStop?.({
+				nextFrameNumber,
+				currentIndex: privateCurrentIndex,
+				animationDirection,
+			})
 		} else if (state === 'pause') {
-			_options?.onPause?.()
+			_options?.onPause?.({
+				nextFrameNumber,
+				currentIndex: privateCurrentIndex,
+				animationDirection,
+			})
 		}
 
 		_options.onChangeState?.(state)
@@ -172,21 +190,25 @@ export function sequenceAnimation(
 		}
 	}
 
-	function setInitialFrameDurationArray() {
+	function setInitialFrameDurationArray(
+		firstFrame?: number,
+		lastFrame?: number,
+	) {
+		const firstFrameIndex = firstFrame || 1
+		const lastFrameIndex = lastFrame || framesDurationsArray.length - 1
 		if (
 			_options.direction === 'alternate' ||
 			_options.direction === 'alternate-reverse'
 		) {
 			if (animationDirection === 'reverse') {
 				if (_options.direction === 'alternate') {
-					framesDurationsArray[1] = 0
+					framesDurationsArray[firstFrameIndex] = 0
 				}
-				framesDurationsArray[framesDurationsArray.length - 1] =
-					originalLastFrameDuration
+				framesDurationsArray[lastFrameIndex] = originalLastFrameDuration
 			} else {
-				framesDurationsArray[1] = originalFirstFrameDuration
+				framesDurationsArray[firstFrameIndex] = originalFirstFrameDuration
 				if (_options.direction === 'alternate-reverse') {
-					framesDurationsArray[framesDurationsArray.length - 1] = 0
+					framesDurationsArray[lastFrameIndex] = 0
 				}
 			}
 		}
@@ -252,6 +274,10 @@ export function sequenceAnimation(
 			_options.repeat = options?.repeat
 			playCount = 0
 
+			if (!isPaused || animation === null) {
+				animation = animate(framesDurationsArray, animateSequence)
+			}
+
 			setAnimationDirection()
 
 			setInitialFrameDurationArray()
@@ -274,6 +300,7 @@ export function sequenceAnimation(
 	 * Pauses the sequence animation on the current frame
 	 */
 	function pause() {
+		isPaused = true
 		animation?.stop()
 		handleEvents('pause')
 	}
@@ -288,6 +315,9 @@ export function sequenceAnimation(
 
 		animation?.stop()
 		animation?.reset()
+
+		isPaused = false
+		animation = null
 
 		handleEvents('stop')
 	}
