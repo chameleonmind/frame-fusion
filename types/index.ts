@@ -13,9 +13,9 @@ export type SequenceAnimationOptions = {
 	onLoad?: () => void
 	onEnd?: () => void
 	onRepeat?: () => void
-	onStop?: () => void
-	onPlay?: () => void
-	onPause?: () => void
+	onStop?: (data?: CallbackData) => void
+	onPlay?: (data?: CallbackData) => void
+	onPause?: (data?: CallbackData) => void
 	onChangeState?: (state: AnimationStates) => void
 	onReverse?: () => void
 }
@@ -30,3 +30,9 @@ export type AnimateCoreReturnType = {
 export type AnimationDirection = 'forward' | 'reverse' | undefined
 
 export type AnimationSequenceElements = HTMLImageElement[] | HTMLElement[]
+
+export type CallbackData = {
+	currentIndex: number
+	nextFrameNumber: number
+	animationDirection: AnimationDirection
+}
