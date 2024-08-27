@@ -4,10 +4,7 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"files": [
-		"dist",
-		"styles"
-	],
+	"files": ["dist", "styles"],
 	"description": "Animate sequence of layered images in a single frame",
 	"author": {
 		"name": "Miloš Milošević",
@@ -18,27 +15,33 @@
 	"engines": {
 		"node": ">=16"
 	},
+	"type": "module",
 	"main": "./dist/index.js",
-	"module": "./dist/index.mjs",
 	"exports": {
 		".": {
-			"require": "./dist/index.js",
-			"import": "./dist/index.mjs"
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
 		},
 		"./styles/*": "./styles/*"
 	},
 	"types": "./dist/index.d.ts",
 	"scripts": {
 		"build-fast": "tsup src/index.ts --format cjs,esm",
-		"dev": "tsup src/index.ts --format cjs,esm  --dts-resolve --watch",
-		"build": "pnpm run build-fast --dts-resolve --minify",
+		"dev": "tsup --watch",
+		"build": "tsup",
 		"test": "vitest run",
-		"prepublishOnly": "pnpm run build",
-		"check-types": "tsc --noEmit"
+		"lint": "tsc",
+		"ci": "pnpm run build && npm run check-exports && pnpm run lint && pnpm run test",
+		"local-release": "changeset version && changeset publish",
+		"prepublishOnly": "npm run ci",
+		"check-types": "tsc --noEmit",
+		"check-exports": "attw --pack ."
 	},
 	"license": "MIT",
 	"devDependencies": {
+		"@arethetypeswrong/cli": "^0.15.4",
 		"@biomejs/biome": "1.8.2",
+		"@changesets/cli": "^2.27.7",
 		"happy-dom": "^14.12.3",
 		"tsup": "^8.1.0",
 		"typescript": "^5.5.2",
