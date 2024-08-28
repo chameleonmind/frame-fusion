@@ -41,7 +41,7 @@ export function sequenceAnimation(
 	let privateCurrentIndex = -1
 	let animationDirection: AnimationDirection
 	let playCount = 0
-	let isPaused = false
+	// let isPaused = false
 
 	// if the options.frames is provided, empty the main element and append the images
 	if (mainElement && _options?.frames) {
@@ -110,6 +110,9 @@ export function sequenceAnimation(
 
 		if (animationSequence[indexToShow]) {
 			animationSequence[indexToShow].setAttribute('data-ff-active', '')
+			if (_options?.visibleClass) {
+				animationSequence[indexToShow].classList.add(_options.visibleClass)
+			}
 		}
 
 		privateCurrentIndex = currentIndex
@@ -259,8 +262,11 @@ export function sequenceAnimation(
 	 * Reset all elements visibility (remove active data attribute)
 	 */
 	function resetElementVisibility() {
-		for (let i = 0; i < animationSequence.length; i++) {
-			animationSequence[i].removeAttribute('data-ff-active')
+		for (const element of animationSequence) {
+			element.removeAttribute('data-ff-active')
+			if (_options?.visibleClass) {
+				element.classList.remove(_options.visibleClass)
+			}
 		}
 	}
 
@@ -274,7 +280,7 @@ export function sequenceAnimation(
 			_options.repeat = options?.repeat
 			playCount = 0
 
-			if (!isPaused || animation === null) {
+			if (animation === null) {
 				animation = animate(framesDurationsArray, animateSequence)
 			}
 
@@ -300,8 +306,9 @@ export function sequenceAnimation(
 	 * Pauses the sequence animation on the current frame
 	 */
 	function pause() {
-		isPaused = true
+		// isPaused = true
 		animation?.stop()
+		nextFrameNumber = privateCurrentIndex
 		handleEvents('pause')
 	}
 
@@ -316,9 +323,10 @@ export function sequenceAnimation(
 		animation?.stop()
 		animation?.reset()
 
-		isPaused = false
-		animation = null
-
+		// isPaused = false
+		// animation = null
+		animationDirection = undefined
+		setAnimationDirection()
 		handleEvents('stop')
 	}
 
@@ -391,6 +399,9 @@ export function sequenceAnimation(
 		resetElementVisibility()
 		if (animationSequence[nextFrameNumber]) {
 			animationSequence[nextFrameNumber].setAttribute('data-ff-active', '')
+			if (_options?.visibleClass) {
+				animationSequence[nextFrameNumber].classList.add(_options.visibleClass)
+			}
 		}
 	}
 
