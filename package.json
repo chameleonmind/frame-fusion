@@ -1,10 +1,13 @@
 {
 	"name": "frame-fusion",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"publishConfig": {
 		"access": "public"
 	},
-	"files": ["dist", "styles"],
+	"files": [
+		"dist",
+		"styles"
+	],
 	"description": "Animate sequence of layered images in a single frame",
 	"author": {
 		"name": "Miloš Milošević",
