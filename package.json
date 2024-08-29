@@ -17,6 +17,7 @@
 	},
 	"type": "module",
 	"main": "./dist/index.js",
+	"unpkg": "./dist/index.global.js",
 	"exports": {
 		".": {
 			"import": "./dist/index.js",
