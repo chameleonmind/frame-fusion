@@ -11,6 +11,8 @@ export type SequenceAnimationOptions = {
 	fillMode?: 'forwards' | 'backwards' | 'poster'
 	direction?: 'normal' | 'reverse' | 'alternate' | 'alternate-reverse'
 	visibleClass?: string
+	keepFramesVisible?: boolean
+	posterHiddenClass?: string
 	onLoad?: () => void
 	onEnd?: () => void
 	onRepeat?: () => void

@@ -41,7 +41,7 @@ export function sequenceAnimation(
 	let privateCurrentIndex = -1
 	let animationDirection: AnimationDirection
 	let playCount = 0
-	// let isPaused = false
+	let isPaused = false
 
 	// if the options.frames is provided, empty the main element and append the images
 	if (mainElement && _options?.frames) {
@@ -100,7 +100,10 @@ export function sequenceAnimation(
 		let indexToShow = currentIndex
 
 		// avoid flickering when the last frame is shown
-		if (currentIndex < animationSequenceLength - 1) {
+		if (
+			currentIndex < animationSequenceLength - 1 &&
+			!_options?.keepFramesVisible
+		) {
 			resetElementVisibility()
 		}
 
@@ -253,6 +256,9 @@ export function sequenceAnimation(
 			const poster = mainElement?.querySelector('[data-ff-poster]')
 			if (poster) {
 				poster.removeAttribute('data-ff-hidden')
+				if (_options?.posterHiddenClass) {
+					poster.classList.remove(_options.posterHiddenClass)
+				}
 			}
 			nextFrameNumber = -1
 		}
@@ -280,6 +286,11 @@ export function sequenceAnimation(
 			_options.repeat = options?.repeat
 			playCount = 0
 
+			// in case of intentional play, and keepFramesVisible is true, need to reset the currentIndex
+			if (_options?.keepFramesVisible && !isPaused) {
+				resetElementVisibility()
+			}
+
 			if (animation === null) {
 				animation = animate(framesDurationsArray, animateSequence)
 			}
@@ -292,6 +303,9 @@ export function sequenceAnimation(
 			const poster = mainElement?.querySelector('[data-ff-poster]')
 			if (poster) {
 				poster.setAttribute('data-ff-hidden', '')
+				if (_options?.posterHiddenClass) {
+					poster.classList.add(_options.posterHiddenClass)
+				}
 			}
 
 			animation?.start()
@@ -306,7 +320,7 @@ export function sequenceAnimation(
 	 * Pauses the sequence animation on the current frame
 	 */
 	function pause() {
-		// isPaused = true
+		isPaused = true
 		animation?.stop()
 		nextFrameNumber = privateCurrentIndex
 		handleEvents('pause')
@@ -317,12 +331,15 @@ export function sequenceAnimation(
 	 */
 	function stop() {
 		setEndFrame()
-		makeCurrentFrameActive()
+
+		if (!_options?.keepFramesVisible) {
+			makeCurrentFrameActive()
+		}
 
 		animation?.stop()
 		animation?.reset()
 
-		// isPaused = false
+		isPaused = false
 		// animation = null
 		animationDirection = undefined
 		setAnimationDirection()
@@ -411,7 +428,9 @@ export function sequenceAnimation(
 
 		updateAnimationDirection(dir)
 
-		makeCurrentFrameActive()
+		if (!_options?.keepFramesVisible) {
+			makeCurrentFrameActive()
+		}
 
 		animation?.setFrame(nextFrameNumber)
 	}
@@ -444,7 +463,9 @@ export function sequenceAnimation(
 
 		nextFrameNumber = clamp(frameNumber, 0, animationSequenceLength - 2)
 
-		makeCurrentFrameActive()
+		if (!_options?.keepFramesVisible) {
+			makeCurrentFrameActive()
+		}
 
 		const nextFrame =
 			nextFrameNumber === animationSequenceLength - 2 ? 0 : nextFrameNumber
