@@ -100,7 +100,10 @@ export function sequenceAnimation(
 		let indexToShow = currentIndex
 
 		// avoid flickering when the last frame is shown
-		if (currentIndex < animationSequenceLength - 1) {
+		if (
+			currentIndex < animationSequenceLength - 1 &&
+			!_options?.keepFramesVisible
+		) {
 			resetElementVisibility()
 		}
 
@@ -110,6 +113,9 @@ export function sequenceAnimation(
 
 		if (animationSequence[indexToShow]) {
 			animationSequence[indexToShow].setAttribute('data-ff-active', '')
+			if (_options?.visibleClass) {
+				animationSequence[indexToShow].classList.add(_options.visibleClass)
+			}
 		}
 
 		privateCurrentIndex = currentIndex
@@ -137,7 +143,7 @@ export function sequenceAnimation(
 		) {
 			completeAnimationComparator = -1
 		} else {
-			completeAnimationComparator = animationSequenceLength - 2
+			completeAnimationComparator = animationSequenceLength - 1
 		}
 
 		if (indexToShow === completeAnimationComparator) {
@@ -250,6 +256,9 @@ export function sequenceAnimation(
 			const poster = mainElement?.querySelector('[data-ff-poster]')
 			if (poster) {
 				poster.removeAttribute('data-ff-hidden')
+				if (_options?.posterHiddenClass) {
+					poster.classList.remove(_options.posterHiddenClass)
+				}
 			}
 			nextFrameNumber = -1
 		}
@@ -259,8 +268,11 @@ export function sequenceAnimation(
 	 * Reset all elements visibility (remove active data attribute)
 	 */
 	function resetElementVisibility() {
-		for (let i = 0; i < animationSequence.length; i++) {
-			animationSequence[i].removeAttribute('data-ff-active')
+		for (const element of animationSequence) {
+			element.removeAttribute('data-ff-active')
+			if (_options?.visibleClass) {
+				element.classList.remove(_options.visibleClass)
+			}
 		}
 	}
 
@@ -274,7 +286,12 @@ export function sequenceAnimation(
 			_options.repeat = options?.repeat
 			playCount = 0
 
-			if (!isPaused || animation === null) {
+			// in case of intentional play, and keepFramesVisible is true, need to reset the currentIndex
+			if (_options?.keepFramesVisible && !isPaused) {
+				resetElementVisibility()
+			}
+
+			if (animation === null) {
 				animation = animate(framesDurationsArray, animateSequence)
 			}
 
@@ -286,6 +303,9 @@ export function sequenceAnimation(
 			const poster = mainElement?.querySelector('[data-ff-poster]')
 			if (poster) {
 				poster.setAttribute('data-ff-hidden', '')
+				if (_options?.posterHiddenClass) {
+					poster.classList.add(_options.posterHiddenClass)
+				}
 			}
 
 			animation?.start()
@@ -302,6 +322,7 @@ export function sequenceAnimation(
 	function pause() {
 		isPaused = true
 		animation?.stop()
+		nextFrameNumber = privateCurrentIndex
 		handleEvents('pause')
 	}
 
@@ -311,14 +332,17 @@ export function sequenceAnimation(
 	function stop() {
 		setEndFrame()
 
-		makeCurrentFrameActive()
+		if (!_options?.keepFramesVisible) {
+			makeCurrentFrameActive()
+		}
 
 		animation?.stop()
 		animation?.reset()
 
 		isPaused = false
-		animation = null
-
+		// animation = null
+		animationDirection = undefined
+		setAnimationDirection()
 		handleEvents('stop')
 	}
 
@@ -391,6 +415,9 @@ export function sequenceAnimation(
 		resetElementVisibility()
 		if (animationSequence[nextFrameNumber]) {
 			animationSequence[nextFrameNumber].setAttribute('data-ff-active', '')
+			if (_options?.visibleClass) {
+				animationSequence[nextFrameNumber].classList.add(_options.visibleClass)
+			}
 		}
 	}
 
@@ -401,7 +428,9 @@ export function sequenceAnimation(
 
 		updateAnimationDirection(dir)
 
-		makeCurrentFrameActive()
+		if (!_options?.keepFramesVisible) {
+			makeCurrentFrameActive()
+		}
 
 		animation?.setFrame(nextFrameNumber)
 	}
@@ -434,7 +463,9 @@ export function sequenceAnimation(
 
 		nextFrameNumber = clamp(frameNumber, 0, animationSequenceLength - 2)
 
-		makeCurrentFrameActive()
+		if (!_options?.keepFramesVisible) {
+			makeCurrentFrameActive()
+		}
 
 		const nextFrame =
 			nextFrameNumber === animationSequenceLength - 2 ? 0 : nextFrameNumber

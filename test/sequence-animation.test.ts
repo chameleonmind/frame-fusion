@@ -57,6 +57,8 @@ describe('sequenceAnimation commands', () => {
         <img src="https://placehold.co/600x400?text=2">
         <img src="https://placehold.co/600x400?text=3">
         <img src="https://placehold.co/600x400?text=4">
+        <img src="https://placehold.co/600x400?text=5">
+        <img src="https://placehold.co/600x400?text=6">
       </div>
     `
 		element = document.querySelector('#animatedFrames') as HTMLElement
@@ -197,6 +199,70 @@ describe('sequenceAnimation commands', () => {
 
 		const images = element.querySelectorAll('img')
 
+		expect(images[1].hasAttribute('data-ff-active')).toBe(true)
+	})
+
+	test('should add the visible class', async () => {
+		const animation = sequenceAnimation('#animatedFrames', {
+			autoplay: false,
+			visibleClass: 'ff-test-active',
+			delay: 50,
+		})
+
+		animation.nextFrame()
+		animation.nextFrame()
+
+		const activeElements = element.querySelectorAll('.ff-test-active')
+		expect(activeElements.length).toBe(1)
+		const images = element.querySelectorAll('img')
+		expect(images[1].classList.contains('ff-test-active')).toBe(true)
+	})
+
+	test('should play then pause and move to the next frame', async () => {
+		const animation = sequenceAnimation('#animatedFrames', {
+			autoplay: false,
+			framerate: 24,
+		})
+
+		animation.play(true)
+
+		await delay(100)
+		const pauseSpy = vi.spyOn(animation, 'pause')
+		animation.pause()
+
+		expect(pauseSpy).toHaveBeenCalled()
+
+		animation.nextFrame()
+		animation.nextFrame()
+
+		const activeElements = element.querySelectorAll('[data-ff-active]')
+		expect(activeElements.length).toBe(1)
+
+		const images = element.querySelectorAll('img')
+		expect(images[4].hasAttribute('data-ff-active')).toBe(true)
+	})
+
+	test('should play then pause and move twice to the previous frame', async () => {
+		const animation = sequenceAnimation('#animatedFrames', {
+			autoplay: false,
+			delay: 50,
+		})
+
+		animation.play(true)
+
+		await delay(200)
+		const pauseSpy = vi.spyOn(animation, 'pause')
+		animation.pause()
+
+		expect(pauseSpy).toHaveBeenCalled()
+
+		animation.previousFrame()
+		animation.previousFrame()
+
+		const activeElements = element.querySelectorAll('[data-ff-active]')
+		expect(activeElements.length).toBe(1)
+
+		const images = element.querySelectorAll('img')
 		expect(images[1].hasAttribute('data-ff-active')).toBe(true)
 	})
 })
