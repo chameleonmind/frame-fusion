@@ -140,7 +140,7 @@ export function sequenceAnimation(
 		) {
 			completeAnimationComparator = -1
 		} else {
-			completeAnimationComparator = animationSequenceLength - 2
+			completeAnimationComparator = animationSequenceLength - 1
 		}
 
 		if (indexToShow === completeAnimationComparator) {
@@ -317,7 +317,6 @@ export function sequenceAnimation(
 	 */
 	function stop() {
 		setEndFrame()
-
 		makeCurrentFrameActive()
 
 		animation?.stop()
