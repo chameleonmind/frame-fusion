@@ -1,10 +1,13 @@
 {
 	"name": "@chameleonmind/frame-fusion",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publishConfig": {
 		"access": "public"
 	},
-	"files": ["dist", "styles"],
+	"files": [
+		"dist",
+		"styles"
+	],
 	"description": "Animate or step through a sequence of layered images in a single frame.",
 	"homepage": "https://github.com/chameleonmind/frame-fusion#readme",
 	"bugs": "https://github.com/chameleonmind/frame-fusion/issues",
