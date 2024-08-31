@@ -1,14 +1,13 @@
 {
-	"name": "frame-fusion",
+	"name": "@chameleonmind/frame-fusion",
 	"version": "0.1.0",
 	"publishConfig": {
 		"access": "public"
 	},
-	"files": [
-		"dist",
-		"styles"
-	],
-	"description": "Animate sequence of layered images in a single frame",
+	"files": ["dist", "styles"],
+	"description": "Animate or step through a sequence of layered images in a single frame.",
+	"homepage": "https://github.com/chameleonmind/frame-fusion#readme",
+	"bugs": "https://github.com/chameleonmind/frame-fusion/issues",
 	"author": {
 		"name": "Miloš Milošević",
 		"email": "highlander.mm@gmail.com",
