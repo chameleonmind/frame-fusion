@@ -112,10 +112,7 @@ export function sequenceAnimation(
 		}
 
 		if (animationSequence[indexToShow]) {
-			animationSequence[indexToShow].setAttribute('data-ff-active', '')
-			if (_options?.visibleClass) {
-				animationSequence[indexToShow].classList.add(_options.visibleClass)
-			}
+			setActiveAttrs(indexToShow)
 		}
 
 		privateCurrentIndex = currentIndex
@@ -148,7 +145,10 @@ export function sequenceAnimation(
 
 		if (indexToShow === completeAnimationComparator) {
 			playCount++
-			_options?.onRepeat?.()
+
+			if (_options?.repeat && playCount < _options?.repeat) {
+				_options?.onRepeat?.()
+			}
 		}
 
 		if (_options?.repeat && playCount >= _options?.repeat) {
@@ -292,6 +292,7 @@ export function sequenceAnimation(
 			}
 
 			if (animation === null) {
+				resetElementVisibility()
 				animation = animate(framesDurationsArray, animateSequence)
 			}
 
@@ -408,15 +409,36 @@ export function sequenceAnimation(
 		}
 	}
 
+	function setActiveAttrs(index: number) {
+		animationSequence[index].setAttribute('data-ff-active', '')
+		if (_options?.visibleClass) {
+			animationSequence[index].classList.add(_options.visibleClass)
+		}
+	}
+
+	function removeActiveAttrs(index: number) {
+		animationSequence[index].removeAttribute('data-ff-active')
+		if (_options?.visibleClass) {
+			animationSequence[index].classList.remove(_options.visibleClass)
+		}
+	}
+
 	/**
 	 * Resets all elements visibility and makes the current frame active
 	 */
 	function makeCurrentFrameActive() {
 		resetElementVisibility()
 		if (animationSequence[nextFrameNumber]) {
-			animationSequence[nextFrameNumber].setAttribute('data-ff-active', '')
-			if (_options?.visibleClass) {
-				animationSequence[nextFrameNumber].classList.add(_options.visibleClass)
+			setActiveAttrs(nextFrameNumber)
+		}
+	}
+
+	function goToNextFrameWithFramesVisibleOption() {
+		for (let i = 0; i < animationSequenceLength - 1; i++) {
+			if (i <= nextFrameNumber) {
+				setActiveAttrs(i)
+			} else {
+				removeActiveAttrs(i)
 			}
 		}
 	}
@@ -430,6 +452,8 @@ export function sequenceAnimation(
 
 		if (!_options?.keepFramesVisible) {
 			makeCurrentFrameActive()
+		} else {
+			goToNextFrameWithFramesVisibleOption()
 		}
 
 		animation?.setFrame(nextFrameNumber)
